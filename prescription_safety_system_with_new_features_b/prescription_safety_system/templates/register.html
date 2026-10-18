@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Register — RxVerify{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:0 auto;">
+  <h2>Create an account</h2>
+  <form method="POST" id="regForm">
+    <label>I am registering as</label>
+    <div class="role-toggle">
+      <label><input type="radio" name="role" value="patient" checked onchange="toggleRole()"><span>Patient</span></label>
+      <label><input type="radio" name="role" value="verifier" onchange="toggleRole()"><span>Pharmacist / Verifier</span></label>
+    </div>
+
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" required>
+
+    <div id="verifierField" style="display:none;">
+      <label for="professional_id">Professional ID</label>
+      <input type="text" name="professional_id" id="professional_id" placeholder="e.g. Pharmacy Council registration no.">
+    </div>
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required>
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+
+    <div id="confirmField">
+      <label for="confirm_password">Confirm Password</label>
+      <input type="password" name="confirm_password" id="confirm_password">
+    </div>
+
+    <div id="allergyField">
+      <label>Allergies (optional)</label>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin:-4px 0 10px;">
+        List anything you're allergic to — foods, medicines, chemicals/active ingredients, or other
+        substances. We'll warn you if an uploaded prescription contains something on this list.
+      </p>
+      <div id="allergyRows"></div>
+      <button type="button" class="btn-ghost" onclick="addAllergyRow()" style="margin-top:6px;">+ Add another allergy</button>
+    </div>
+
+    <div id="diseaseField">
+      <label>Health conditions (optional)</label>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin:-4px 0 10px;">
+        List any diagnosed conditions — e.g. asthma, kidney disease, hypertension, pregnancy. We'll
+        warn you if an uploaded prescription contains a medicine known to worsen or conflict with one.
+      </p>
+      <div id="diseaseRows"></div>
+      <button type="button" class="btn-ghost" onclick="addDiseaseRow()" style="margin-top:6px;">+ Add another condition</button>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Register</button>
+    </div>
+  </form>
+  <p style="margin-top:16px;font-size:14px;">Already have an account? <a href="{{ url_for('login') }}" style="color:var(--accent);">Log in</a></p>
+</div>
+
+<script>
+function toggleRole(){
+  const role = document.querySelector('input[name=role]:checked').value;
+  document.getElementById('verifierField').style.display = role === 'verifier' ? 'block' : 'none';
+  document.getElementById('confirmField').style.display = role === 'verifier' ? 'none' : 'block';
+  document.getElementById('allergyField').style.display = role === 'patient' ? 'block' : 'none';
+  document.getElementById('diseaseField').style.display = role === 'patient' ? 'block' : 'none';
+}
+
+function addAllergyRow(){
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+  wrap.innerHTML = `
+    <select name="allergy_category[]" style="flex:0 0 130px;">
+      <option value="food">Food</option>
+      <option value="medicine">Medicine</option>
+      <option value="chemical">Chemical</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="text" name="allergy_substance[]" placeholder="e.g. Penicillin, peanuts, sulfa" style="flex:1;">
+    <input type="text" name="allergy_notes[]" placeholder="Notes (optional)" style="flex:1;">
+    <button type="button" class="btn-ghost" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('allergyRows').appendChild(wrap);
+}
+function addDiseaseRow(){
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+  wrap.innerHTML = `
+    <input type="text" name="disease_condition[]" placeholder="e.g. Asthma, kidney disease, pregnancy" style="flex:1;">
+    <input type="text" name="disease_notes[]" placeholder="Notes (optional)" style="flex:1;">
+    <button type="button" class="btn-ghost" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('diseaseRows').appendChild(wrap);
+}
+// Start with one empty row each so patients see the fields immediately.
+addAllergyRow();
+addDiseaseRow();
+</script>
+{% endblock %}

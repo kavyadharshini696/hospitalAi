@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">Welcome, {{ session.get('name') }}</h1>
+
+<div class="grid-3">
+  <a href="{{ url_for('patient_dashboard', filter='all') }}" class="card stat{{ ' active' if active_filter=='all' else '' }}" style="display:block;text-decoration:none;color:inherit;">
+    <div class="val">{{ stats.total }}</div><div class="lbl">Prescriptions</div>
+  </a>
+  <a href="{{ url_for('patient_dashboard', filter='verified') }}" class="card stat{{ ' active' if active_filter=='verified' else '' }}" style="display:block;text-decoration:none;color:inherit;">
+    <div class="val">{{ stats.verified }}</div><div class="lbl">Verified</div>
+  </a>
+  <a href="{{ url_for('patient_dashboard', filter='pending') }}" class="card stat{{ ' active' if active_filter=='pending' else '' }}" style="display:block;text-decoration:none;color:inherit;">
+    <div class="val">{{ stats.pending }}</div><div class="lbl">Needs verification</div>
+  </a>
+</div>
+<a href="{{ url_for('patient_dashboard', filter='warnings') }}" class="card stat{{ ' active' if active_filter=='warnings' else '' }}" style="display:block;text-decoration:none;color:inherit;margin-top:-4px;">
+  <div class="val">{{ stats.warnings }}</div><div class="lbl">Open warnings across all prescriptions</div>
+</a>
+
+<div style="margin:24px 0;display:flex;gap:12px;flex-wrap:wrap;">
+  <a href="{{ url_for('upload') }}" class="btn btn-primary">Upload new prescription</a>
+  <a href="{{ url_for('allergies') }}" class="btn-ghost">Manage allergies</a>
+  <a href="{{ url_for('diseases') }}" class="btn-ghost">Manage health conditions</a>
+  <a href="{{ url_for('download_health_record') }}" class="btn-ghost">Download full health record (PDF)</a>
+</div>
+
+<div class="card">
+  <h2>
+    {% if active_filter=='verified' %}Verified prescriptions
+    {% elif active_filter=='pending' %}Prescriptions needing verification
+    {% elif active_filter=='warnings' %}Prescriptions with open warnings
+    {% else %}My Prescriptions{% endif %}
+  </h2>
+  {% if prescriptions %}
+  <table>
+    <tr><th>Date</th><th>Status</th><th>Completeness</th><th>Warnings</th><th></th><th></th></tr>
+    {% for p in prescriptions %}
+    <tr>
+      <td>{{ p['upload_date'] }}</td>
+      <td>
+        {% if p['status']=='verified' %}<span class="badge green"><span class="dot"></span>Verified</span>
+        {% else %}<span class="badge yellow"><span class="dot"></span>Verification required</span>{% endif %}
+      </td>
+      <td class="mono">{{ p['completeness_score'] }}/100</td>
+      <td class="mono">{{ warning_counts.get(p['prescription_id'], 0) }}</td>
+      <td><a href="{{ url_for('prescription_detail', prescription_id=p['prescription_id']) }}" style="color:var(--accent);font-weight:600;">View →</a></td>
+      <td>
+        <form method="POST" action="{{ url_for('delete_prescription', prescription_id=p['prescription_id']) }}"
+              onsubmit="return confirm('Delete this prescription? This cannot be undone.');" style="margin:0;">
+          <button type="submit" class="btn-ghost" style="padding:4px 12px;font-size:12.5px;color:#c0392b;">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty-state">
+    {% if active_filter=='verified' %}No verified prescriptions yet.
+    {% elif active_filter=='pending' %}Nothing needs verification right now.
+    {% elif active_filter=='warnings' %}No prescriptions currently have open warnings.
+    {% else %}No prescriptions uploaded yet. Start with your first upload above.{% endif %}
+  </div>
+  {% endif %}
+  {% if active_filter != 'all' %}
+  <p style="margin-top:14px;"><a href="{{ url_for('patient_dashboard', filter='all') }}" style="color:var(--accent);font-weight:600;">← Show all prescriptions</a></p>
+  {% endif %}
+</div>
+{% endblock %}

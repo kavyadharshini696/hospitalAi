@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}How It Works — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">How It Works</h1>
+
+<div class="card">
+  <h3>1. Upload</h3>
+  <p>A patient uploads a photo, scan, or PDF of a prescription — or pastes the text directly for a reliable demo.</p>
+</div>
+<div class="card">
+  <h3>2. Extract</h3>
+  <p>The system preprocesses the image (grayscale, contrast, noise removal), runs OCR, and pulls out
+  structured fields: medicine name, strength, dosage, frequency, duration, quantity, and food instructions.
+  This uses transparent, rule-based pattern matching — not a black box — so every decision is explainable.</p>
+</div>
+<div class="card">
+  <h3>3. Analyze</h3>
+  <p>Every field gets a real confidence score from the OCR engine. A rules engine then checks for:</p>
+  <ul>
+    <li>Ambiguous handwriting / low-confidence text</li>
+    <li>Missing required fields (dosage, frequency, duration)</li>
+    <li>Duplicate active ingredients across medicines</li>
+    <li>Quantity vs. dose × frequency × duration mismatches</li>
+    <li>Shorthand abbreviations (OD, BD, TDS, etc.) that need confirming</li>
+  </ul>
+  <p>Each issue is scored <span class="sev sev-high">HIGH</span> <span class="sev sev-medium">MEDIUM</span> <span class="sev sev-low">LOW</span> and the prescription gets an overall completeness score.</p>
+</div>
+<div class="card">
+  <h3>4. Verify</h3>
+  <p>A pharmacist/verifier sees the original prescription and the AI's interpretation side-by-side, and confirms
+  or corrects each uncertain field. The AI never overwrites a doctor's prescription on its own.</p>
+</div>
+<div class="card">
+  <h3>5. Download</h3>
+  <p>Once verified, a clean digital prescription PDF is generated, with a plain-language explanation
+  available in English or Tamil.</p>
+</div>
+{% endblock %}

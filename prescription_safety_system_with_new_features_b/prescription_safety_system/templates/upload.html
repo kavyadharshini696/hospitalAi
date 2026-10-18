@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Upload Prescription — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">Upload Prescription</h1>
+<div class="card">
+  <form method="POST" enctype="multipart/form-data">
+    <div class="dropzone">
+      <div class="icon">📷</div>
+      <p><strong>Drag &amp; drop</strong> or choose one or more prescription images / PDFs</p>
+      <input type="file" id="files-input" name="files" accept=".jpg,.jpeg,.png,.pdf" multiple>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin-top:10px;">JPG, PNG, or PDF · max 8&nbsp;MB each</p>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">
+        You can select several prescriptions at once — for example, if different doctors prescribed
+        medicines for different problems. We'll check them together for possible drug interactions.
+      </p>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">
+        Tip: opening "choose file" more than once adds to your selection below instead of replacing it —
+        upload every prescription you want checked together in a single go.
+      </p>
+    </div>
+    <ul id="selected-files" style="list-style:none;padding:0;margin:10px 0 0;"></ul>
+
+    <div class="divider-or">— or paste the prescription text for a reliable demo —</div>
+
+    <label for="pasted_text">Paste prescription text</label>
+    <textarea name="pasted_text" id="pasted_text" placeholder="e.g. Tab. Paracetamol 500mg 1-0-1 x 5 days #10&#10;Tab. Amoxicillin 500mg BD PC x 5 days"></textarea>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Upload &amp; Analyze</button>
+    </div>
+  </form>
+</div>
+<div class="card" style="background:var(--paper);box-shadow:none;">
+  <strong>Tip for a good demo:</strong> real handwriting recognition is genuinely hard — that's the whole point
+  of this project. Typed/printed prescriptions will OCR with high confidence; messy handwriting will
+  correctly trigger low-confidence warnings. Use the "paste text" option to reliably showcase the
+  ambiguity, missing-field, duplicate-ingredient, and quantity-consistency checks.
+</div>
+<div class="card" style="background:var(--paper);box-shadow:none;">
+  <strong>Safety checks run automatically:</strong> every upload is checked for drug interactions against
+  <em>all</em> of your active prescriptions (not just the ones uploaded together), and against the allergies
+  saved on your <a href="{{ url_for('allergies') }}" style="color:var(--accent);">My Allergies</a> page.
+  Any match is shown as a red, high-severity alert that must be verified by a doctor or pharmacist.
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Native <input type="file" multiple> REPLACES the selection every time the
+// dialog is opened again, which is why "upload file 1, then open the picker
+// again for file 2" silently drops file 1. This keeps a running list in a
+// DataTransfer object and writes it back into the input's .files each time,
+// so multiple dialog openings accumulate instead of replacing.
+(function () {
+  const input = document.getElementById('files-input');
+  const list = document.getElementById('selected-files');
+  let dt = new DataTransfer();
+
+  function render() {
+    list.innerHTML = '';
+    [...dt.files].forEach((file, idx) => {
+      const li = document.createElement('li');
+      li.style.cssText = 'display:flex;justify-content:space-between;align-items:center;' +
+        'padding:6px 10px;background:var(--paper);border-radius:8px;margin-bottom:6px;font-size:13.5px;';
+      const name = document.createElement('span');
+      name.textContent = '📄 ' + file.name;
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = 'Remove';
+      removeBtn.className = 'btn-ghost';
+      removeBtn.style.cssText = 'padding:2px 10px;font-size:12px;';
+      removeBtn.addEventListener('click', () => {
+        dt.items.remove(idx);
+        input.files = dt.files;
+        render();
+      });
+      li.appendChild(name);
+      li.appendChild(removeBtn);
+      list.appendChild(li);
+    });
+  }
+
+  input.addEventListener('change', () => {
+    for (const file of input.files) {
+      dt.items.add(file);
+    }
+    input.files = dt.files;
+    render();
+  });
+})();
+</script>
+{% endblock %}

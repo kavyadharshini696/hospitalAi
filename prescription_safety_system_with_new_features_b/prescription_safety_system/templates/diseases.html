@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}My Health Conditions — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">My Health Conditions</h1>
+<p style="color:var(--ink-soft);margin-top:-8px;">
+  Every prescription you upload is automatically checked against this list. If a medicine may
+  worsen or interact badly with a condition you've recorded, you'll see an alert on that
+  prescription explaining why — always double-check with a doctor or pharmacist before taking it.
+</p>
+
+<div class="card">
+  <h2>Add a health condition</h2>
+  <form method="POST">
+    <label for="condition_name">Condition</label>
+    <input type="text" name="condition_name" id="condition_name" placeholder="e.g. Asthma, kidney disease, hypertension, pregnancy" required>
+
+    <label for="notes">Notes (optional)</label>
+    <input type="text" name="notes" id="notes" placeholder="e.g. Diagnosed in 2021, managed with inhaler">
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Add condition</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Recorded conditions</h2>
+  {% if diseases %}
+  <table>
+    <tr><th>Condition</th><th>Notes</th><th></th></tr>
+    {% for d in diseases %}
+    <tr>
+      <td><strong>{{ d['condition_name'] }}</strong></td>
+      <td>{{ d['notes'] or '—' }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('delete_disease', disease_id=d['disease_id']) }}" onsubmit="return confirm('Remove this condition?');" style="margin:0;">
+          <button type="submit" class="btn-ghost" style="padding:4px 12px;">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty-state">No health conditions recorded yet. Add one above so we can check your prescriptions against it.</div>
+  {% endif %}
+</div>
+{% endblock %}

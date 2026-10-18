@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Verification Queue — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">Prescriptions Requiring Verification</h1>
+<p style="opacity:0.75;margin-top:-0.5rem;">
+  Sorted by risk, not upload time — the prescription with the highest combined
+  severity/confidence score is shown first, so the riskiest cases get reviewed sooner.
+</p>
+<div class="card">
+  {% if prescriptions %}
+  <table>
+    <tr><th>ID</th><th>Patient</th><th>Open issues</th><th>Priority</th><th>Risk score</th><th></th></tr>
+    {% for p in prescriptions %}
+    <tr>
+      <td class="mono">P{{ '%04d'|format(p['prescription_id']) }}</td>
+      <td>{{ p['patient_name'] }}</td>
+      <td>{{ p['issue_count'] }}</td>
+      <td>
+        {% if p['top_severity']=='high' %}<span class="sev sev-high">High</span>
+        {% elif p['top_severity']=='medium' %}<span class="sev sev-medium">Medium</span>
+        {% elif p['top_severity']=='low' %}<span class="sev sev-low">Low</span>
+        {% else %}—{% endif %}
+      </td>
+      <td class="mono">{{ p['risk_score'] }}</td>
+      <td><a href="{{ url_for('verify_prescription', prescription_id=p['prescription_id']) }}" style="color:var(--accent);font-weight:600;">Review →</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty-state">Nothing pending — the queue is clear.</div>
+  {% endif %}
+</div>
+{% endblock %}

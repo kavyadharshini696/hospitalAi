@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}RxVerify{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a href="{{ url_for('home') }}" class="brand">
+    <span class="brand-mark">Rx</span>Verify
+    <span class="brand-sub">Prescription Safety &amp; Ambiguity Detection</span>
+  </a>
+  <nav class="topnav">
+    {% if session.get('user_id') %}
+      {% if session.get('role') == 'patient' %}
+        <a href="{{ url_for('patient_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('upload') }}">Upload</a>
+        <a href="{{ url_for('allergies') }}">My Allergies</a>
+        <a href="{{ url_for('diseases') }}">My Conditions</a>
+      {% else %}
+        <a href="{{ url_for('verifier_dashboard') }}">Verification Queue</a>
+      {% endif %}
+      <span class="who">{{ session.get('name') }} · {{ session.get('role')|capitalize }}</span>
+      <a href="{{ url_for('logout') }}" class="btn-ghost">Log out</a>
+    {% else %}
+      <a href="{{ url_for('how_it_works') }}">How it works</a>
+      <a href="{{ url_for('about') }}">About</a>
+      <a href="{{ url_for('login') }}">Log in</a>
+      <a href="{{ url_for('register') }}" class="btn-solid">Register</a>
+    {% endif %}
+    <span class="lang-toggle">
+      <a href="{{ url_for('set_language', lang='en') }}" class="{{ 'active' if lang=='en' else '' }}">EN</a> /
+      <a href="{{ url_for('set_language', lang='ta') }}" class="{{ 'active' if lang=='ta' else '' }}">தமிழ்</a>
+    </span>
+  </nav>
+</header>
+
+<div class="flash-wrap">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, msg in messages %}
+    <div class="flash flash-{{ category }}">{{ msg }}</div>
+  {% endfor %}
+{% endwith %}
+</div>
+
+<main class="page">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <p><strong>Medical safety notice:</strong> This system is an AI-assisted prescription verification tool.
+  It does not diagnose diseases, prescribe medication, change dosage, or replace a doctor or pharmacist.
+  Detected issues must be verified by a qualified healthcare professional.</p>
+</footer>{% block scripts %}{% endblock %}
+</body>
+</html>

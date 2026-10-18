@@ -1,0 +1,13 @@
+Flask==3.0.3
+Werkzeug==3.0.3
+requests>=2.32
+pytesseract>=0.3.13
+Pillow>=11.0
+pypdf==4.3.1
+fpdf2==2.7.9
+gunicorn>=22.0
+
+# System dependency (not a pip package) — must be installed on the OS:
+#   Ubuntu/Debian:  sudo apt-get install tesseract-ocr
+#   Mac:            brew install tesseract
+#   Windows:        install the tesseract binary and add it to PATH

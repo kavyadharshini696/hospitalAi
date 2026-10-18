@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Verify P{{ '%04d'|format(presc['prescription_id']) }} — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">Verify Prescription P{{ '%04d'|format(presc['prescription_id']) }}</h1>
+
+<div class="card">
+  <h3>Detected Issues</h3>
+  {% for i in issues %}
+  <div class="issue-item">
+    <span class="sev sev-{{ i['severity'] }}">{{ i['severity'] }}</span>
+    <div style="flex:1;">
+      <strong>{{ i['issue_type']|replace('_',' ')|title }}</strong><p>{{ i['description'] }}</p>
+      {% if i['explanation'] %}
+      <details class="why-details">
+        <summary class="why-link">Why is this ever flagged?</summary>
+        <p class="why-panel-inline">{{ i['explanation'] }}</p>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">No issues were flagged — a quick confirmation is still required.</div>
+  {% endfor %}
+</div>
+
+<form method="POST">
+<div class="side-by-side">
+  <div class="card">
+    <h3>Original Prescription</h3>
+    {% if presc['image_path'] %}
+      <img src="{{ url_for('uploaded_file', filename=presc['image_path']) }}" class="rx-image">
+    {% else %}
+      <pre class="mono" style="white-space:pre-wrap;background:var(--paper);padding:14px;border-radius:8px;">{{ presc['raw_text'] }}</pre>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>AI Extraction — confirm or correct each field</h3>
+    {% for m in medicines %}
+    <div class="med-card">
+      <div class="med-head">
+        <span class="med-name">Medicine #{{ loop.index }}</span>
+        <span class="badge {{ m['band'] }}"><span class="dot"></span>{{ m['confidence'] }}%</span>
+      </div>
+
+      <label>Name</label>
+      <input type="text" name="verified_name_{{ m['medicine_id'] }}" value="{{ m['name'] or '' }}">
+
+      <label>Dose</label>
+      <input type="text" name="verified_dosage_{{ m['medicine_id'] }}" value="{{ m['dosage'] or '' }}">
+
+      <label>Frequency</label>
+      <input type="text" name="verified_frequency_{{ m['medicine_id'] }}" value="{{ m['frequency_expanded'] or m['frequency'] or '' }}">
+
+      <label>Duration</label>
+      <input type="text" name="verified_duration_{{ m['medicine_id'] }}" value="{{ m['duration'] or '' }}">
+
+      <label>Quantity</label>
+      <input type="text" name="verified_quantity_{{ m['medicine_id'] }}" value="{{ m['quantity'] or '' }}">
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="form-actions">
+  <button type="submit" class="btn btn-primary">Confirm Verification &amp; Mark Verified</button>
+</div>
+</form>
+{% endblock %}

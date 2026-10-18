@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}About — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">About This Project</h1>
+<div class="card">
+  <h3>What this is</h3>
+  <p>RxVerify is a <strong>Prescription Safety &amp; Ambiguity Detection System</strong> — a college prototype,
+  not a diagnostic or prescribing tool. It reads an existing prescription, tells you (and a pharmacist) how
+  confident it is about what it read, and flags anything that looks missing, ambiguous, or inconsistent.</p>
+</div>
+<div class="card">
+  <h3>What makes it different from a generic reminder app</h3>
+  <ul>
+    <li>Confidence-aware prescription interpretation</li>
+    <li>Ambiguous handwriting detection with alternative interpretations</li>
+    <li>Missing-information detection (never auto-filled)</li>
+    <li>Cross-field consistency checking (dose × frequency × duration vs. quantity)</li>
+    <li>Active-ingredient duplicate detection across medicines</li>
+    <li>Human-in-the-loop verification instead of automatic correction</li>
+    <li>Simple-language explanations in English and Tamil</li>
+  </ul>
+</div>
+<div class="card">
+  <h3>Medical safety notice</h3>
+  <p>This system is an AI-assisted prescription verification tool. It does not diagnose diseases, prescribe
+  medication, change dosage, or replace a doctor or pharmacist. Detected issues must be verified by a
+  qualified healthcare professional.</p>
+</div>
+{% endblock %}

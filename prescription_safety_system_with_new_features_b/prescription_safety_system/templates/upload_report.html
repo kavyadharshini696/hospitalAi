@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Upload Report — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">Upload report</h1>
+<p style="color:var(--ink-soft);">{{ prescriptions|length }} prescription(s) analysed together.</p>
+
+{% if interactions %}
+<div class="card" style="border-color:#c0392b;">
+  <h2 style="color:#c0392b;">⚠️ These medicines may not be safe to take together</h2>
+  {% for it in interactions %}
+  <div class="issue-item">
+    <span class="sev sev-{{ it.severity }}">{{ it.severity }}</span>
+    <div style="flex:1;">
+      <strong>{{ it.name_a }} + {{ it.name_b }}</strong>
+      <p>{{ it.description }}</p>
+      {% if interaction_explanation %}
+      <details class="why-details">
+        <summary class="why-link">Why is this ever flagged?</summary>
+        <p class="why-panel-inline">{{ interaction_explanation }}</p>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  <p style="margin-top:12px;font-size:13.5px;color:var(--ink-soft);">
+    Please check with a doctor or pharmacist before taking these medicines together. This is a
+    verification flag, not a medical instruction to stop or change any medicine on your own.
+  </p>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    No known interactions were found between these medicines in our reference list. This doesn't
+    guarantee they're safe together — always check with a pharmacist if you're unsure.
+  </div>
+</div>
+{% endif %}
+
+{% for p in prescriptions %}
+<div class="card">
+  <h3 style="margin-top:0;">Prescription P{{ '%04d'|format(p.presc['prescription_id']) }}</h3>
+  <table>
+    <tr><th>Medicine</th><th>Dose</th><th>Frequency</th><th>Alert</th></tr>
+    {% for m in p.medicines %}
+    <tr>
+      <td>{{ m['name'] or 'Unrecognised' }}</td>
+      <td>{{ m['dosage'] or '—' }}</td>
+      <td>{{ m['frequency'] or '—' }}</td>
+      <td>
+        {% if m['has_alert'] %}<span class="sev sev-high">Alert</span>
+        {% else %}<span class="sev sev-low">No alert</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p style="margin-top:12px;">
+    <a href="{{ url_for('prescription_detail', prescription_id=p.presc['prescription_id']) }}" style="color:var(--accent);font-weight:600;">View full details →</a>
+  </p>
+</div>
+{% endfor %}
+
+<a href="{{ url_for('patient_dashboard') }}" class="btn btn-primary">Go to dashboard</a>
+<a href="{{ url_for('upload') }}" class="btn-ghost">Upload another prescription</a>
+{% endblock %}

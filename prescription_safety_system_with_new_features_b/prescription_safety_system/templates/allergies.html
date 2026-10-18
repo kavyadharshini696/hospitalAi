@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}My Allergies — RxVerify{% endblock %}
+{% block content %}
+<h1 style="font-family:'Fraunces',serif;">My Allergies</h1>
+<p style="color:var(--ink-soft);margin-top:-8px;">
+  Every prescription you upload is automatically checked against this list. If a medicine contains
+  something you're allergic to, you'll see a red, high-severity alert on that prescription — always
+  double-check with a doctor or pharmacist before taking it.
+</p>
+
+<div class="card">
+  <h2>Add an allergy</h2>
+  <form method="POST">
+    <label for="category">Type</label>
+    <select name="category" id="category">
+      <option value="food">Food ingredient</option>
+      <option value="medicine">Medicine</option>
+      <option value="chemical">Chemical / active ingredient</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label for="substance">What are you allergic to?</label>
+    <input type="text" name="substance" id="substance" placeholder="e.g. Penicillin, peanuts, sulfa, latex" required>
+
+    <label for="notes">Notes (optional)</label>
+    <input type="text" name="notes" id="notes" placeholder="e.g. Caused a rash in 2022">
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Add allergy</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Recorded allergies</h2>
+  {% if allergies %}
+  <table>
+    <tr><th>Type</th><th>Substance</th><th>Notes</th><th></th></tr>
+    {% for a in allergies %}
+    <tr>
+      <td>{{ a['category']|capitalize }}</td>
+      <td><strong>{{ a['substance'] }}</strong></td>
+      <td>{{ a['notes'] or '—' }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('delete_allergy', allergy_id=a['allergy_id']) }}" onsubmit="return confirm('Remove this allergy?');" style="margin:0;">
+          <button type="submit" class="btn-ghost" style="padding:4px 12px;">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty-state">No allergies recorded yet. Add one above so we can check your prescriptions against it.</div>
+  {% endif %}
+</div>
+{% endblock %}

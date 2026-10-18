@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}Prescription P{{ '%04d'|format(presc['prescription_id']) }} — RxVerify{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+  <h1 style="font-family:'Fraunces',serif;margin:0;">Prescription P{{ '%04d'|format(presc['prescription_id']) }}</h1>
+  {% if presc['status']=='verified' %}
+    <span class="badge green"><span class="dot"></span>Human verified</span>
+    <a href="{{ url_for('download_prescription', prescription_id=presc['prescription_id']) }}" class="btn btn-primary">Download PDF</a>
+  {% else %}
+    <span class="badge yellow"><span class="dot"></span>Verification required</span>
+  {% endif %}
+  {% if session.get('role') == 'patient' %}
+  <form method="POST" action="{{ url_for('delete_prescription', prescription_id=presc['prescription_id']) }}"
+        onsubmit="return confirm('Delete this prescription? This cannot be undone.');" style="margin:0;">
+    <button type="submit" class="btn-ghost" style="color:#c0392b;">Delete prescription</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="grid-2" style="margin-top:24px;">
+  <details class="card stat" style="cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer;">
+      <div class="score-ring">{{ presc['completeness_score'] }}<span style="font-size:18px;color:var(--ink-soft);">/100</span></div>
+      <div class="lbl">Prescription completeness score</div>
+      <div style="font-size:12px;color:var(--accent);margin-top:6px;">Click to see why →</div>
+    </summary>
+    <div style="text-align:left;margin-top:14px;border-top:1px solid var(--line,#eee);padding-top:12px;">
+      {% for cb in completeness_breakdown %}
+      <p style="font-size:13.5px;margin:0 0 4px;"><strong>{{ cb.name }}</strong> — {{ cb.passed }}/{{ cb.total }} checks passed</p>
+      <ul style="margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--ink-soft);">
+        {% for label, ok in cb.checks %}
+        <li>{{ '✓' if ok else '✗' }} {{ label }}</li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+      <p style="font-size:12px;color:var(--ink-soft);margin-top:6px;">Score = total checks passed ÷ total checks possible, across every medicine.</p>
+    </div>
+  </details>
+  <details class="card stat" style="cursor:pointer;">
+    <summary style="list-style:none;cursor:pointer;">
+      <div class="score-ring">{{ presc['overall_confidence'] }}<span style="font-size:18px;color:var(--ink-soft);">%</span></div>
+      <div class="lbl">Overall extraction confidence</div>
+      <div style="font-size:12px;color:var(--accent);margin-top:6px;">Click to see why →</div>
+    </summary>
+    <div style="text-align:left;margin-top:14px;border-top:1px solid var(--line,#eee);padding-top:12px;">
+      {% for cs in confidence_summary %}
+      <p style="font-size:13.5px;margin:0 0 4px;"><strong>{{ cs.name }}: {{ cs.confidence }}%</strong></p>
+      <ul style="margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--ink-soft);">
+        {% for b in cs.breakdown %}
+        <li>{{ b.label }}: {{ b.value }}% — {{ b.detail }}</li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+      <p style="font-size:12px;color:var(--ink-soft);margin-top:6px;">Overall confidence is the average of every medicine's confidence above.</p>
+    </div>
+  </details>
+</div>
+
+{% if presc['image_path'] %}
+<div class="card">
+  <h3>Original prescription</h3>
+  <img src="{{ url_for('uploaded_file', filename=presc['image_path']) }}" class="rx-image" alt="Uploaded prescription">
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>{{ 'மருந்துகள் சுருக்கம்' if lang == 'ta' else 'Medicines Summary' }}</h2>
+  <table>
+    <tr>
+      <th>{{ 'மருந்தின் பெயர்' if lang == 'ta' else 'Medicine name' }}</th>
+      <th>{{ 'அளவு' if lang == 'ta' else 'Dose' }}</th>
+      <th>{{ 'அதிர்வெண்' if lang == 'ta' else 'Frequency' }}</th>
+      <th>{{ 'எச்சரிக்கை' if lang == 'ta' else 'Alert' }}</th>
+    </tr>
+    {% for m in medicines %}
+    <tr>
+      <td>{{ (m['name_ta'] or m['verified_name'] or m['name'] or 'Unrecognised') if lang == 'ta' else (m['verified_name'] or m['name'] or 'Unrecognised') }}</td>
+      <td>{{ (m['dosage_ta'] or m['verified_dosage'] or m['dosage'] or '—') if lang == 'ta' else (m['verified_dosage'] or m['dosage'] or '—') }}</td>
+      <td>
+        {% if lang == 'ta' %}
+          {{ m['frequency_expanded_ta'] or m['verified_frequency'] or m['frequency'] or '—' }}
+        {% else %}
+          {{ m['verified_frequency'] or m['frequency'] or '—' }}
+        {% endif %}
+      </td>
+      <td>
+        {% if m['has_alert'] %}
+          <details class="why-details">
+            <summary><span class="sev sev-high">{{ 'எச்சரிக்கை' if lang == 'ta' else 'Alert' }}</span> <span class="why-link">{{ 'ஏன்?' if lang == 'ta' else 'why?' }}</span></summary>
+            <div class="why-panel">
+              {% for issue in m['issues_why'] %}
+              <p><span class="sev sev-{{ issue['severity'] }}">{{ issue['severity'] }}</span> {{ issue['description'] }}</p>
+              {% endfor %}
+            </div>
+          </details>
+        {% else %}
+          <span class="sev sev-low">{{ 'இல்லை' if lang == 'ta' else 'No alert' }}</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  {% if lang != 'ta' %}
+  <!-- Feature: click-to-reveal Tamil summary, independent of the site-wide
+       EN/தமிழ் nav toggle — no page reload, no full-site language switch. -->
+  <details class="ta-reveal" style="margin-top:16px;">
+    <summary style="cursor:pointer;font-weight:600;color:var(--accent);">தமிழில் காண்க · View in Tamil</summary>
+    <table style="margin-top:10px;">
+      <tr>
+        <th>மருந்தின் பெயர்</th>
+        <th>அளவு</th>
+        <th>அதிர்வெண்</th>
+        <th>எச்சரிக்கை</th>
+      </tr>
+      {% for m in medicines %}
+      <tr>
+        <td>{{ m['name_ta'] or m['verified_name'] or m['name'] or 'அடையாளம் தெரியவில்லை' }}</td>
+        <td>{{ m['dosage_ta'] or m['verified_dosage'] or m['dosage'] or '—' }}</td>
+        <td>{{ m['frequency_expanded_ta'] or m['verified_frequency'] or m['frequency'] or '—' }}</td>
+        <td>
+          {% if m['has_alert'] %}<span class="sev sev-high">எச்சரிக்கை</span>
+          {% else %}<span class="sev sev-low">இல்லை</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <div style="margin-top:12px;">
+      {% for m in medicines %}
+      <p style="font-size:14px;margin:6px 0;">
+        <strong>{{ m['name_ta'] or m['verified_name'] or m['name'] or 'அடையாளம் தெரியவில்லை' }}:</strong>
+        {{ m['dosage_ta'] or '1 மாத்திரை' }}
+        {% if m['frequency_expanded_ta'] %} · {{ m['frequency_expanded_ta'] }}{% endif %}
+        {% if m['duration'] %} · {{ m['duration'] }}{% endif %}
+        {% if m['food_instruction_ta'] %} · {{ m['food_instruction_ta'] }}{% endif %}
+      </p>
+      {% endfor %}
+    </div>
+    <p style="margin-top:10px;font-size:12px;color:var(--ink-soft);">
+      இது எழுதப்பட்ட வழிமுறைகளின் மொழிபெயர்ப்பு — இது புதிய மருத்துவ அறிவுரை அல்ல.
+    </p>
+  </details>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Extracted Medicines</h2>
+  {% for m in medicines %}
+  <div class="med-card">
+    <div class="med-head">
+      <span class="med-name">Medicine #{{ loop.index }}: {{ m['verified_name'] or m['name'] or 'Unrecognised' }}</span>
+      <span class="badge {{ m['band'] }}"><span class="dot"></span>{{ m['confidence'] }}% confidence</span>
+    </div>
+
+    {% if m['confidence_breakdown'] %}
+    <details style="margin:8px 0 4px;">
+      <summary style="cursor:pointer;font-size:13px;color:var(--ink-soft);">Why {{ m['confidence'] }}%? (click to see the breakdown)</summary>
+      <ul style="margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--ink-soft);">
+        {% for b in m['confidence_breakdown'] %}
+        <li><strong>{{ b.label }}: {{ b.value }}%</strong> — {{ b.detail }}</li>
+        {% endfor %}
+      </ul>
+      <p style="margin:8px 0 0;font-size:12px;color:var(--ink-soft);">Overall confidence is the average of these 4 scores.</p>
+    </details>
+    {% endif %}
+    <div class="field-row"><span class="k">Strength</span><span class="v">{{ m['strength'] or '—' }}</span></div>
+    <div class="field-row"><span class="k">Dose</span><span class="v">{{ m['verified_dosage'] or m['dosage'] or '—' }}</span></div>
+    <div class="field-row"><span class="k">Frequency</span><span class="v">{{ m['verified_frequency'] or m['frequency'] or '—' }}</span></div>
+    <div class="field-row"><span class="k">Duration</span><span class="v">{{ m['verified_duration'] or m['duration'] or '—' }}</span></div>
+    <div class="field-row"><span class="k">Quantity</span><span class="v">{{ m['verified_quantity'] or m['quantity'] or '—' }}</span></div>
+    <div class="field-row"><span class="k">Food instruction</span><span class="v">{{ m['food_instruction'] or '—' }}</span></div>
+
+    {% if m['abbrev_meaning'] %}
+    <p style="margin-top:10px;font-size:13.5px;color:var(--ink-soft);">
+      ⚠️ Abbreviation <strong>{{ m['frequency']|upper }}</strong> detected → usually means
+      "<strong>{{ m['abbrev_meaning'] }}</strong>". Interpretation should be verified.
+    </p>
+    {% endif %}
+
+    <p style="margin-top:10px;font-size:14px;">
+      <strong>Plain-language explanation ({{ 'தமிழ்' if lang=='ta' else 'English' }}):</strong>
+      {% if lang == 'ta' %}
+        {{ m['dosage'] or '1 மாத்திரை' }} {{ m['frequency_expanded_ta'] or '' }}
+        {% if m['duration'] %} {{ m['duration'] }}{% endif %}
+        {% if m['food_instruction_ta'] %} · {{ m['food_instruction_ta'] }}{% endif %}
+      {% else %}
+        Take {{ m['dosage'] or '1 tablet' }}{% if m['frequency_expanded'] %}, {{ m['frequency_expanded'].split(' (')[0] }}{% endif %}{% if m['duration'] %} for {{ m['duration'] }}{% endif %}{% if m['food_instruction'] %}, {{ m['food_instruction']|lower }}{% endif %}.
+      {% endif %}
+      <br><span style="font-size:12px;color:var(--ink-soft);">This is an interpretation of the written instructions, not a new medical instruction generated by the AI.</span>
+    </p>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h2>Detected Issues</h2>
+  <p style="color:var(--ink-soft);margin-top:-10px;font-size:13.5px;">
+    Every issue below is explainable: what specifically triggered it on this prescription, and what
+    kind of check raises this type of issue in general.
+  </p>
+  {% if issues %}
+    {% for i in issues %}
+    <div class="issue-item">
+      <span class="sev sev-{{ i['severity'] }}">{{ i['severity'] }}</span>
+      <div style="flex:1;">
+        <strong>{{ i['issue_type']|replace('_',' ')|title }}</strong>
+        <p>{{ i['description'] }}</p>
+        {% if i['explanation'] %}
+        <details class="why-details" style="margin-top:4px;">
+          <summary class="why-link">Why is this ever flagged?</summary>
+          <p class="why-panel-inline">{{ i['explanation'] }}</p>
+        </details>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">No issues detected on this pass.</div>
+  {% endif %}
+</div>
+{% endblock %}
