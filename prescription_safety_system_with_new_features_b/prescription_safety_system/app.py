@@ -53,7 +53,6 @@ def _start_keep_alive():
 
 
 ALLERGY_CATEGORIES = ("food", "medicine", "chemical", "other")
-
 BASE_DIR = os.path.dirname(__file__)
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 GENERATED_DIR = os.path.join(BASE_DIR, "instance", "generated")
@@ -64,6 +63,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
 app = Flask(__name__)
+from feature_routes import medicine_features
+app.register_blueprint(medicine_features)
 app.secret_key = "change-this-secret-key-in-production"
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 

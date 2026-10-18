@@ -1,0 +1,127 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6fb;
+    color: #253247;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 35px auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #176b63;
+}
+
+.card {
+    background: white;
+    padding: 24px;
+    margin: 22px 0;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+}
+
+form {
+    display: grid;
+    gap: 10px;
+}
+
+input {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #ccd4df;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+button,
+.hospital-link {
+    display: inline-block;
+    width: fit-content;
+    padding: 12px 18px;
+    background: #176b63;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button:hover,
+.hospital-link:hover {
+    background: #104d48;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.status.expired {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.status.expiring-soon {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.status.valid {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.message {
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.message.success {
+    background: #dcfce7;
+}
+
+.message.error {
+    background: #fee2e2;
+}
+
+.note {
+    color: #5c6678;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        margin: 10px auto;
+        padding: 12px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+}

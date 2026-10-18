@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Management | Hospital AI</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='medicine_features.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1>Medicine Management</h1>
+        <p>Track medicine brands and expiry dates.</p>
+
+        <section class="card">
+            <h2>Add Medicine</h2>
+
+            <form action="{{ url_for('medicine_features.add_medicine') }}"
+                  method="POST">
+                <label for="name">Medicine name</label>
+                <input id="name" name="name" required maxlength="150">
+
+                <label for="brand">Medicine brand</label>
+                <input id="brand" name="brand" required maxlength="150">
+
+                <label for="expiry_date">Expiry date</label>
+                <input id="expiry_date" name="expiry_date"
+                       type="date" required>
+
+                <button type="submit">Add Medicine</button>
+            </form>
+        </section>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <p class="message {{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="card">
+            <h2>Medicine List</h2>
+
+            {% if medicines %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Brand</th>
+                            <th>Expiry Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medicine in medicines %}
+                        <tr>
+                            <td>{{ medicine.name }}</td>
+                            <td>{{ medicine.brand }}</td>
+                            <td>{{ medicine.expiry_date }}</td>
+                            <td>
+                                <span class="status {{ medicine.status|lower|replace(' ', '-') }}">
+                                    {{ medicine.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p>No medicines have been added yet.</p>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <h2>Small Hospitals Near Katpadi</h2>
+            <p>Find nearby hospitals and clinics using Google Maps.</p>
+            <a class="hospital-link"
+               href="https://www.google.com/maps/search/small+hospitals+and+clinics+near+Katpadi,+Vellore/"
+               target="_blank" rel="noopener noreferrer">
+                Find Nearby Hospitals
+            </a>
+            <p class="note">
+                Check the hospital's location, services and contact details
+                before visiting.
+            </p>
+        </section>
+    </main>
+</body>
+</html>
