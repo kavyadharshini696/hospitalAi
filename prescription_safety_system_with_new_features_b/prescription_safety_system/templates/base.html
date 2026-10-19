@@ -12,7 +12,8 @@
     <span class="brand-mark">Rx</span>Verify
     <span class="brand-sub">Prescription Safety &amp; Ambiguity Detection</span>
   </a>
-  <nav class="topnav">
+ 
+<nav class="topnav">
     {% if session.get('user_id') %}
       {% if session.get('role') == 'patient' %}
         <a href="{{ url_for('patient_dashboard') }}">Dashboard</a>
@@ -22,6 +23,12 @@
       {% else %}
         <a href="{{ url_for('verifier_dashboard') }}">Verification Queue</a>
       {% endif %}
+
+      <!-- New feature options -->
+      <a href="/medicine-features">Medicine Expiry & Brands</a>
+      <a href="https://www.google.com/maps/search/hospitals+near+Katpadi/"
+         target="_blank" rel="noopener noreferrer">Nearby Hospitals</a>
+
       <span class="who">{{ session.get('name') }} · {{ session.get('role')|capitalize }}</span>
       <a href="{{ url_for('logout') }}" class="btn-ghost">Log out</a>
     {% else %}
@@ -30,12 +37,14 @@
       <a href="{{ url_for('login') }}">Log in</a>
       <a href="{{ url_for('register') }}" class="btn-solid">Register</a>
     {% endif %}
+
     <span class="lang-toggle">
       <a href="{{ url_for('set_language', lang='en') }}" class="{{ 'active' if lang=='en' else '' }}">EN</a> /
       <a href="{{ url_for('set_language', lang='ta') }}" class="{{ 'active' if lang=='ta' else '' }}">தமிழ்</a>
     </span>
-  </nav>
+</nav>
 </header>
+
 
 <div class="flash-wrap">
 {% with messages = get_flashed_messages(with_categories=true) %}
