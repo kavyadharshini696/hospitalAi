@@ -6,6 +6,8 @@ upload -> extract -> analyse -> verify -> download workflow.
 Run with:  python app.py   (after running: python db.py)
 """
 import os
+from flask import Flask
+from db import get_db, init_db
 from collections import defaultdict
 from functools import wraps
 from flask import (Flask, render_template, request, redirect, url_for,
@@ -63,6 +65,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
 app = Flask(__name__)
+init_db()
 from feature_routes import medicine_features
 app.register_blueprint(medicine_features)
 app.secret_key = "change-this-secret-key-in-production"
